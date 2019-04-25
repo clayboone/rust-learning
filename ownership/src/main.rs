@@ -57,6 +57,11 @@ fn main() {
     change_string_mutable_ref(&mut s);
 
     println!("main(): s = {}", s);
+
+    // ---------------------
+    println!();
+
+    slices();
 }
 
 fn takes_ownership(s: String) {
@@ -115,4 +120,32 @@ fn change_string_mutable_ref(s: &mut String) {
     // s goes out of scope here, but since it's a ref, it won't be drop'd.
     // the String at &s will be changed though. Note: this is a statement, not
     // and expression (not the ';') and this function returns nothing.
+}
+
+/*********************************************************/
+
+fn slices() {
+    let s1 = String::from("hello world"); // new heap pointer from data
+
+    let word = first_word(&s1[..]); // pass a slice of a String
+
+    println!("{}", word);
+
+    let s2 = "hello world"; // literal; on data
+
+    let word = first_word(&s2[..]);
+
+    println!("{}", word);
+}
+
+fn first_word(s: &str) -> &str {
+    let bytes = s.as_bytes();
+
+    for (i, &el) in bytes.iter().enumerate() {
+        if el == b' ' {
+            return &s[0..i];
+        }
+    }
+
+    &s[..]
 }
