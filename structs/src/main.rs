@@ -23,6 +23,29 @@ impl std::fmt::Display for Color {
     }
 }
 
+// struct with implementation block (impl)
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+impl Rectangle {
+    fn area(&self) -> u32 {
+        self.width * self.height
+    }
+
+    fn can_hold(&self, other: &Rectangle) -> bool {
+        self.width > other.width && self.height > other.height
+    }
+
+    fn square(size: u32) -> Rectangle {
+        Rectangle {
+            width: size,
+            height: size,
+        }
+    }
+}
+
 fn print_user(user: &User) {
     println!(
         "{} ({}) is {}signed in (total {}).",
@@ -65,9 +88,22 @@ fn main() {
     );
     print_user(&user2);
 
-    let black = Color(0, 0, 0);
     let blue = Color(0, 0, 255);
     let origin = Point(0, 0, 0);
-
     println!("point {} is color {}", origin, blue);
+
+    let rect1 = Rectangle {
+        width: 30,
+        height: 50,
+    };
+    let rect2 = Rectangle {
+        width: 40,
+        height: 10,
+    };
+    println!("Area of rect1 is {}", rect1.area());
+    println!("Area of rect2 is {}", rect2.area());
+    println!("Can rect1 hold rect2? {}", rect1.can_hold(&rect2));
+
+    let sq = Rectangle::square(50);
+    println!("Can a 50x50 square hold rect2? {}", sq.can_hold(&rect2));
 }
