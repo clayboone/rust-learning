@@ -74,12 +74,12 @@ fn build_user(email: String, username: String) -> User {
 
 fn main() {
     let mut user1 = User {
-        email: String::from("some.user@example.com"),
-        username: String::from("someuser123"),
+        username: String::from("Julius Seizure"),
+        email: String::from("cjules@example.com"),
         sign_in_count: 123,
         active: true,
     };
-    user1.username = String::from("someChangeUser321");
+    user1.username = String::from("Julius Caesar");
     print_user(&user1);
 
     let user2 = build_user(
