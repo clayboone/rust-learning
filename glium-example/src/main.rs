@@ -9,7 +9,7 @@ fn main() {
 
     let mut events_loop = glutin::EventsLoop::new();
     let wb = glutin::WindowBuilder::new();
-    let cb = glutin::ContextBuilder::new();
+    let cb = glutin::ContextBuilder::new().with_depth_buffer(24);
     let display = glium::Display::new(wb, cb, &events_loop).unwrap();
 
     let positions =
@@ -65,7 +65,7 @@ fn main() {
     let mut closed = false;
     while !closed {
         let mut target = display.draw();
-        target.clear_color(0.0, 0.0, 0.0, 1.0);
+        target.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 1.0);
 
         let matrix = [
             [0.01, 0.0, 0.0, 0.0],
@@ -76,13 +76,22 @@ fn main() {
 
         let light = [-1.0, 0.4, 0.9f32];
 
+        let params = glium::DrawParameters {
+            depth: glium::Depth {
+                test: glium::draw_parameters::DepthTest::IfLess,
+                write: true,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+
         target
             .draw(
                 (&positions, &normals),
                 &indices,
                 &program,
                 &uniform! { matrix: matrix, u_light: light },
-                &Default::default(),
+                &params,
             )
             .unwrap();
         target.finish().unwrap();
