@@ -6,6 +6,8 @@ extern crate image;
 use glium::{glutin, Surface};
 use std::io::Cursor;
 
+mod teapot;
+
 fn main() {
     let mut events_loop = glium::glutin::EventsLoop::new();
     let wb = glium::glutin::WindowBuilder::new()
@@ -21,8 +23,10 @@ fn main() {
     .unwrap()
     .to_rgba();
     let image_dimensions = image.dimensions();
-    let image =
-        glium::texture::RawImage2d::from_raw_rgba_reversed(&image.into_raw(), image_dimensions);
+    let image = glium::texture::RawImage2d::from_raw_rgba_reversed(
+        &image.into_raw(),
+        image_dimensions,
+    );
 
     let texture = glium::texture::Texture2d::new(&display, image).unwrap();
 
@@ -49,7 +53,8 @@ fn main() {
     let shape = vec![vertex1, vertex2, vertex3];
 
     let vertex_buffer = glium::VertexBuffer::new(&display, &shape).unwrap();
-    let indices = glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList);
+    let indices =
+        glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList);
 
     let vertex_shader_src = r#"
         #version 140
@@ -83,9 +88,13 @@ fn main() {
         }
     "#;
 
-    let program =
-        glium::Program::from_source(&display, vertex_shader_src, fragment_shader_src, None)
-            .unwrap();
+    let program = glium::Program::from_source(
+        &display,
+        vertex_shader_src,
+        fragment_shader_src,
+        None,
+    )
+    .unwrap();
 
     let mut t: f32 = -0.5;
     let mut closed = false;
