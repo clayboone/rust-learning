@@ -1,90 +1,47 @@
 #[macro_use]
 extern crate glium;
-extern crate image;
-
-#[allow(unused_imports)]
-use glium::{glutin, Surface};
-use std::io::Cursor;
 
 mod teapot;
 
 fn main() {
-    let mut events_loop = glium::glutin::EventsLoop::new();
-    let wb = glium::glutin::WindowBuilder::new()
-        .with_dimensions(glutin::dpi::LogicalSize::new(1024.0, 768.0))
-        .with_title("Hello world");
-    let cb = glium::glutin::ContextBuilder::new();
+    #[allow(unused_imports)]
+    use glium::{glutin, Surface};
+
+    let mut events_loop = glutin::EventsLoop::new();
+    let wb = glutin::WindowBuilder::new();
+    let cb = glutin::ContextBuilder::new();
     let display = glium::Display::new(wb, cb, &events_loop).unwrap();
 
-    let image = image::load(
-        Cursor::new(&include_bytes!("texture-01.png")[..]),
-        image::PNG,
+    let positions =
+        glium::VertexBuffer::new(&display, &teapot::VERTICES).unwrap();
+    let normals = glium::VertexBuffer::new(&display, &teapot::NORMALS).unwrap();
+    let indices = glium::IndexBuffer::new(
+        &display,
+        glium::index::PrimitiveType::TrianglesList,
+        &teapot::INDICES,
     )
-    .unwrap()
-    .to_rgba();
-    let image_dimensions = image.dimensions();
-    let image = glium::texture::RawImage2d::from_raw_rgba_reversed(
-        &image.into_raw(),
-        image_dimensions,
-    );
-
-    let texture = glium::texture::Texture2d::new(&display, image).unwrap();
-
-    #[derive(Copy, Clone)]
-    struct Vertex {
-        position: [f32; 2],
-        tex_coords: [f32; 2],
-    }
-
-    implement_vertex!(Vertex, position, tex_coords);
-
-    let vertex1 = Vertex {
-        position: [-0.5, -0.5],
-        tex_coords: [0.0, 0.0],
-    };
-    let vertex2 = Vertex {
-        position: [0.0, 0.5],
-        tex_coords: [0.0, 1.0],
-    };
-    let vertex3 = Vertex {
-        position: [0.5, -0.25],
-        tex_coords: [1.0, 0.0],
-    };
-    let shape = vec![vertex1, vertex2, vertex3];
-
-    let vertex_buffer = glium::VertexBuffer::new(&display, &shape).unwrap();
-    let indices =
-        glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList);
+    .unwrap();
 
     let vertex_shader_src = r#"
         #version 140
 
-        in vec2 position;
-        in vec2 tex_coords;
-        out vec2 my_attr;
-        out vec2 v_tex_coords;
+        in vec3 position;
+        in vec3 normal;
 
         uniform mat4 matrix;
 
         void main() {
-            my_attr = position;
-            v_tex_coords = tex_coords;
-            gl_Position = matrix * vec4(position, 0.0, 1.0);
+            gl_Position = matrix * vec4(position, 1.0);
         }
     "#;
 
     let fragment_shader_src = r#"
         #version 140
 
-        in vec2 my_attr;
-        in vec2 v_tex_coords;
         out vec4 color;
 
-        uniform sampler2D tex;
-
         void main() {
-            // color = vec4(my_attr, 0.0, 1.0);
-            color = texture(tex, v_tex_coords);
+            color = vec4(1.0, 0.0, 0.0, 1.0);
         }
     "#;
 
@@ -96,42 +53,30 @@ fn main() {
     )
     .unwrap();
 
-    let mut t: f32 = -0.5;
     let mut closed = false;
     while !closed {
-        // update `t`
-        t += 0.002;
-        if t > 0.5 {
-            t = -0.5;
-        }
-
         let mut target = display.draw();
         target.clear_color(0.0, 0.0, 0.0, 1.0);
 
-        // let uniforms = uniform!(t: t);
-        let uniforms = uniform! {
-            matrix: [
-                [ t.cos(), t.sin(), 0.0, 0.0],
-                [-t.sin(), t.cos(), 0.0, 0.0],
-                [     1.0,     0.0, 1.0, 0.0],
-                [       t,     0.0, 0.0, 1.0f32],
-            ],
-            tex: &texture,
-        };
+        let matrix = [
+            [0.01, 0.0, 0.0, 0.0],
+            [0.0, 0.01, 0.0, 0.0],
+            [0.0, 0.0, 0.01, 0.0],
+            [0.0, 0.0, 0.0, 1.0f32],
+        ];
 
         target
             .draw(
-                &vertex_buffer,
+                (&positions, &normals),
                 &indices,
                 &program,
-                &uniforms,
+                &uniform! { matrix: matrix },
                 &Default::default(),
             )
             .unwrap();
-
         target.finish().unwrap();
 
-        events_loop.poll_events(|ev| match ev {
+        events_loop.poll_events(|poll_event| match poll_event {
             glutin::Event::WindowEvent { event, .. } => match event {
                 glutin::WindowEvent::CloseRequested => closed = true,
                 _ => (),
