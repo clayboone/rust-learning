@@ -1,8 +1,10 @@
 #[macro_use]
 extern crate glium;
+extern crate image;
 
 #[allow(unused_imports)]
 use glium::{glutin, Surface};
+use std::io::Cursor;
 
 fn main() {
     let mut events_loop = glium::glutin::EventsLoop::new();
@@ -12,21 +14,37 @@ fn main() {
     let cb = glium::glutin::ContextBuilder::new();
     let display = glium::Display::new(wb, cb, &events_loop).unwrap();
 
+    let image = image::load(
+        Cursor::new(&include_bytes!("texture-01.png")[..]),
+        image::PNG,
+    )
+    .unwrap()
+    .to_rgba();
+    let image_dimensions = image.dimensions();
+    let image =
+        glium::texture::RawImage2d::from_raw_rgba_reversed(&image.into_raw(), image_dimensions);
+
+    let texture = glium::texture::Texture2d::new(&display, image).unwrap();
+
     #[derive(Copy, Clone)]
     struct Vertex {
         position: [f32; 2],
+        tex_coords: [f32; 2],
     }
 
-    implement_vertex!(Vertex, position);
+    implement_vertex!(Vertex, position, tex_coords);
 
     let vertex1 = Vertex {
         position: [-0.5, -0.5],
+        tex_coords: [0.0, 0.0],
     };
     let vertex2 = Vertex {
         position: [0.0, 0.5],
+        tex_coords: [0.0, 1.0],
     };
     let vertex3 = Vertex {
-        position: [0.5, 0.25],
+        position: [0.5, -0.25],
+        tex_coords: [1.0, 0.0],
     };
     let shape = vec![vertex1, vertex2, vertex3];
 
@@ -37,12 +55,15 @@ fn main() {
         #version 140
 
         in vec2 position;
+        in vec2 tex_coords;
         out vec2 my_attr;
+        out vec2 v_tex_coords;
 
         uniform mat4 matrix;
 
         void main() {
             my_attr = position;
+            v_tex_coords = tex_coords;
             gl_Position = matrix * vec4(position, 0.0, 1.0);
         }
     "#;
@@ -51,10 +72,14 @@ fn main() {
         #version 140
 
         in vec2 my_attr;
+        in vec2 v_tex_coords;
         out vec4 color;
 
+        uniform sampler2D tex;
+
         void main() {
-            color = vec4(my_attr, 0.0, 1.0);
+            // color = vec4(my_attr, 0.0, 1.0);
+            color = texture(tex, v_tex_coords);
         }
     "#;
 
@@ -79,9 +104,10 @@ fn main() {
             matrix: [
                 [ t.cos(), t.sin(), 0.0, 0.0],
                 [-t.sin(), t.cos(), 0.0, 0.0],
-                [1.0, 0.0, 1.0, 0.0],
-                [ t , 0.0, 0.0, 1.0f32],
-            ]
+                [     1.0,     0.0, 1.0, 0.0],
+                [       t,     0.0, 0.0, 1.0f32],
+            ],
+            tex: &texture,
         };
 
         target
