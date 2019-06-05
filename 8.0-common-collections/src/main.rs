@@ -64,4 +64,58 @@ fn main() {
     let s = String::from("Здравствуйте");
     println!("{}", s.len());
     println!("{}", &s[0..4]);
+
+    use std::collections::HashMap;
+
+    // simple building
+    let mut scores = HashMap::new();
+    scores.insert(String::from("Blue"), 10);
+    scores.insert(String::from("Yello"), 50);
+
+    // inserting
+    let field_name = String::from("color");
+    let field_value = String::from("blue");
+
+    let mut map = HashMap::new();
+    map.insert(field_name, field_value);
+    // field_* are invalid here because they've been moved into `map` by
+    // insert().
+    // also, it seems like rustc is able to figure out what type of data they
+    // should each contain based on their first values?
+    // println!("{}", field_name);              // won't work
+    // map.insert(String::from("age"), 30i32);  // won't work
+
+    // collecting
+    let teams = vec![String::from("Blue"), String::from("Yello")];
+    let initial_scores = vec![10, 50];
+
+    let mut scores: HashMap<_, _> =
+        teams.iter().zip(initial_scores.iter()).collect();
+
+    // teams.push(String::from("Green"));
+
+    let score = scores.get(&String::from("Blue"));
+
+    if let Some(&10) = score {
+        println!("{:?}", score); // Some(10)
+    }
+
+    let team = String::from("Blue");
+    scores.insert(&team, &25);
+
+    for (key, value) in &scores {
+        // not strictly in any order
+        println!("{} has {}", &key, &value);
+    }
+
+    // udpdating based on old value
+    let text = "hello world hello mom hello people people";
+
+    let mut map = HashMap::new();
+    for word in text.split_whitespace() {
+        let count = map.entry(word).or_insert(0);
+        *count += 1;
+    }
+
+    println!("{:?}", map);
 }
