@@ -55,4 +55,13 @@ fn main() {
     ];
 
     println!("{:?}", row);
+
+    let mut _s1 = String::from("foo");
+    let mut _s2 = " bar".to_string();
+    println!("{}", _s1 + &_s2);
+    // println!("{}", _s2 + &_s2); // _s2 was moved in prev line
+
+    let s = String::from("Здравствуйте");
+    println!("{}", s.len());
+    println!("{}", &s[0..4]);
 }
