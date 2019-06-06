@@ -4,4 +4,7 @@ version = "0.1.0"
 authors = ["Clay Boone <tener.hades@gmail.com>"]
 edition = "2018"
 
+[profile.release]
+panic = 'abort'
+
 [dependencies]
